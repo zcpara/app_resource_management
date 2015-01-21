@@ -4,7 +4,7 @@ var cloudServer = {
     "port":80
   },
   "THD": {
-    "server":"www.mug.amoudo.com",
+    "server":"mug.amoudo.com",
     "port":80
   }
 };
