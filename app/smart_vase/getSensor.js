@@ -6,7 +6,7 @@ var child_process = require('child_process');
 var io = require('../../main/highLevelAPI/io.js');
 var sys = require('../../main/highLevelAPI/sys.js');
 
-io.vase_init();
+//io.vase_init();
 
 var fiveMinute = {
       'T'    : 0,
@@ -32,8 +32,8 @@ var oneHour = {
       'spl'  : 0,
       'count': 0,
       'index': -1};
-fiveMinute.index = parseInt((new Date()).getMinutes()/5);
-oneHour.indx = (new Date()).getHoure();
+fiveMinute.index = parseInt((new Date()).getTime()/(5*60*1000)); //parseInt((new Date()).getMinutes()/5);
+oneHour.index = parseInt((new Date()).getTime()/(60*60*1000)); //(new Date()).getHours();
 
 var lastMsg = null;
 setInterval(function() {
@@ -45,23 +45,26 @@ setInterval(function() {
     process.send(JSON.stringify({'currentValue':sensorMsg}));
   } else if (lastMsg != sensorMsg) {
     //process.send({'content':JSON.stringify({'sensor':sensorMsg})});
-    process.send({'currentValue':sensorMsg}));
+    process.send(JSON.stringify({'currentValue':sensorMsg}));
   }
   var data = JSON.parse(sensorMsg);
 
-  var minuteIndex = parseInt((new Date()).getMinutes()/5);
+  var minuteIndex = parseInt((new Date()).getTime()/(5*60*1000)); //parseInt((new Date()).getMinutes()/5);
   if (minuteIndex != fiveMinute.index) {
-    process.send(JSON.stringify({'fiveMinute:'{
-      'T'    : fiveMinute.T/fiveMinute.count,
-      'H'    : fiveMinute.H/fiveMinute.count,
-      'FT'   : fiveMinute.FT/fiveMinute.count,
-      'co2'  : fiveMinute.co2/fiveMinute.count,
-      'tvoc' : fiveMinute.tvoc/fiveMinute.count,
-      'pm25' : fiveMinute.pm25/fiveMinute.count,
-      'aqi'  : fiveMinute.aqi/fiveMinute.count,
-      'light': fiveMinute.light/fiveMinute.count,
-      'spl'  : fiveMinute.spl/fiveMinute.count
-    }}));
+    if (fiveMinute.count != 0) {
+      process.send(JSON.stringify({'fiveMinute':{
+        'T'    : fiveMinute.T/fiveMinute.count,
+        'H'    : fiveMinute.H/fiveMinute.count,
+        'FT'   : fiveMinute.FT/fiveMinute.count,
+        'co2'  : fiveMinute.co2/fiveMinute.count,
+        'tvoc' : fiveMinute.tvoc/fiveMinute.count,
+        'pm25' : fiveMinute.pm25/fiveMinute.count,
+        'aqi'  : fiveMinute.aqi/fiveMinute.count,
+        'light': fiveMinute.light/fiveMinute.count,
+        'spl'  : fiveMinute.spl/fiveMinute.count,
+        'index': fiveMinute.index
+      }}));
+    }
     fiveMinute.T = data.T;
     fiveMinute.H = data.H;
     fiveMinute.FT = data.FT;
@@ -70,7 +73,7 @@ setInterval(function() {
     fiveMinute.pm25 = data.pm25;
     fiveMinute.aqi = data.aqi;
     fiveMinute.light = data.light;
-    fiveMinute.sql = data.sql;
+    fiveMinute.spl = data.spl;
     fiveMinute.count = 1;
     fiveMinute.index = minuteIndex;
   } else {
@@ -82,23 +85,27 @@ setInterval(function() {
     fiveMinute.pm25 += data.pm25;
     fiveMinute.aqi += data.aqi;
     fiveMinute.light += data.light;
-    fiveMinute.sql += data.sql;
+    fiveMinute.spl += data.spl;
     fiveMinute.count += 1;
     //fiveMinute.index = minuteIndex;
   }
 
-  if ((new Date()).getHour() != oneHour.index) {
-    process.send(JSON.stringify({'oneHour:'{
-      'T'    : oneHour.T/oneHour.count,
-      'H'    : oneHour.H/oneHour.count,
-      'FT'   : oneHour.FT/oneHour.count,
-      'co2'  : oneHour.co2/oneHour.count,
-      'tvoc' : oneHour.tvoc/oneHour.count,
-      'pm25' : oneHour.pm25/oneHour.count,
-      'aqi'  : oneHour.aqi/oneHour.count,
-      'light': oneHour.light/oneHour.count,
-      'spl'  : oneHour.spl/oneHour.count
-    }}));
+  var hourIndex = parseInt((new Date()).getTime()/(60*60*1000));
+  if (hourIndex != oneHour.index) {
+    if (oneHour.count != 0) {
+      process.send(JSON.stringify({'oneHour':{
+        'T'    : oneHour.T/oneHour.count,
+        'H'    : oneHour.H/oneHour.count,
+        'FT'   : oneHour.FT/oneHour.count,
+        'co2'  : oneHour.co2/oneHour.count,
+        'tvoc' : oneHour.tvoc/oneHour.count,
+        'pm25' : oneHour.pm25/oneHour.count,
+        'aqi'  : oneHour.aqi/oneHour.count,
+        'light': oneHour.light/oneHour.count,
+        'spl'  : oneHour.spl/oneHour.count,
+        'index': oneHour.index
+      }}));
+    }
     oneHour.T = data.T;
     oneHour.H = data.H;
     oneHour.FT = data.FT;
@@ -107,9 +114,9 @@ setInterval(function() {
     oneHour.pm25 = data.pm25;
     oneHour.aqi = data.aqi;
     oneHour.light = data.light;
-    oneHour.sql = data.sql;
+    oneHour.spl = data.spl;
     oneHour.count = 1;
-    oneHour.index = (new Date()).getHour();
+    oneHour.index = hourIndex;
   } else {
     oneHour.T += data.T;
     oneHour.H += data.H;
@@ -119,7 +126,7 @@ setInterval(function() {
     oneHour.pm25 += data.pm25;
     oneHour.aqi += data.aqi;
     oneHour.light += data.light;
-    oneHour.sql += data.sql;
+    oneHour.spl += data.spl;
     oneHour.count += 1;
     //oneHour.index = minuteIndex;
   }

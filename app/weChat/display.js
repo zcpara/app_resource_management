@@ -36,7 +36,7 @@ var intervalFindNextImage = 50;
 // Deal with isAtomic==false && dispWhole==false
 var timeout = null;
 var emitFinishEvent = function() {
-  if (typeof currentDispContent.e != undefined) {
+  if (typeof currentDispContent.e != 'undefined') {
     currentDispContent.e.emit('finish', count);
   }
   timeout = setTimeout(emitFinishEvent, 100);
@@ -55,7 +55,7 @@ var display = function() {
     contentBuffer.length == 0 &&
     JSON.parse(currentDispContent.data).numberOfImg == 1) {
     isAnimationDispComplete = true;
-    if (typeof currentDispContent.e != undefined) {
+    if (typeof currentDispContent.e != 'undefined') {
       currentDispContent.e.emit('finish', count);
     }
     setTimeout(display, intervalFindNextAnimation);
@@ -96,7 +96,7 @@ var display = function() {
       }
       io.disp_raw_N(animation, imageData.numberOfImg, currentDispContent.interval);
       isAnimationDispComplete = true;
-      if (typeof currentDispContent.e != undefined) {
+      if (typeof currentDispContent.e != 'undefined') {
         currentDispContent.e.emit('finish', count);
       }
       setTimeout(display, intervalFindNextAnimation);
@@ -111,7 +111,7 @@ var display = function() {
   } catch(ex) {
     console.log('exception:'+ex);
     isAnimationDispComplete = true;
-    if (typeof currentDispContent.e != undefined) {
+    if (typeof currentDispContent.e != 'undefined') {
       currentDispContent.e.emit('finish', count);
     }
     setTimeout(display, intervalFindNextAnimation);
@@ -129,7 +129,7 @@ var dispAnimation = function() {
   //if (content != null && currentDispContent != content && !currentDispContent.dispWhole) { // Terminate loading animation immediately
   if (contentBuffer.length != 0 && currentDispContent != null && !currentDispContent.dispWhole) { // Terminate loading animation immediately
     isAnimationDispComplete = true;
-    if (typeof currentDispContent.e != undefined) {
+    if (typeof currentDispContent.e != 'undefined') {
       currentDispContent.e.emit('finish', count);
     }
     dispAnimation_timeout_2 = setTimeout(dispAnimation, intervalFindNextImage);
@@ -137,7 +137,7 @@ var dispAnimation = function() {
   }
   if (currentDispContent != null && imageIter>=imgs.numberOfImg) {
     isAnimationDispComplete = true;
-    if (typeof currentDispContent.e != undefined) {
+    if (typeof currentDispContent.e != 'undefined') {
       currentDispContent.e.emit('finish', count);
     }
     dispAnimation_timeout_3 = setTimeout(dispAnimation, intervalFindNextImage);
@@ -146,11 +146,11 @@ var dispAnimation = function() {
   if (currentDispContent != null &&
     //currentDispContent != content &&
     contentBuffer.length != 0 &&
-    imgs.textEnd != undefined) {
+    typeof imgs.textEnd != 'undefined') {
     for (var i=0; i<imgs.textEnd.length; i++) {
       if ((imageIter-1) == imgs.textEnd[i]) {
         isAnimationDispComplete = true;
-        if (typeof currentDispContent.e != undefined) {
+        if (typeof currentDispContent.e != 'undefined') {
           currentDispContent.e.emit('finish', count);
         }
         dispAnimation_timeout_4 = setTimeout(dispAnimation, intervalFindNextImage);

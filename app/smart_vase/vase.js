@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
 var utf8 = require('utf8');
+var emitter = require('events').EventEmitter;
 
 var io = require('../../main/highLevelAPI/io.js');
 var sys = require('../../main/highLevelAPI/sys.js');
@@ -124,14 +125,33 @@ function display (index) {
     }
   }
 
-  io.text2Img(sensor[index]+":"+value[index], color, function(image) {
+  var colorV = null;
+  if (color == "red") {
+    colorV = 1;
+  } else if (color == "green") {
+    colorV = 2;
+  } else if (color == "yellow") {
+    colorV = 3;
+  } else if (color == "blue") {
+    colorV = 4;
+  } else if (color == "purple") {
+    colorV = 5;
+  } else if (color == "cyan") {
+    colorV = 6;
+  } else if (color == "white") {
+    colorV = 7;
+  }
+  io.text2Img("  "+sensor[index]+":"+value[index], colorV, function(image) {
     ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
   });
 }
 
 var handler = function(msg) {
+  console.log("sensor msg="+msg+"::end");
   var data = JSON.parse(msg);
-  if (typeof data.currentValue != undefined) {
+  if (data.currentValue != undefined) {
+    var old_value = value[index];
+
     var temp = JSON.parse(data.currentValue);
     value[0] = temp.T;
     value[1] = temp.H;
@@ -144,14 +164,29 @@ var handler = function(msg) {
     value[8] = temp.spl;
 
     // trigger alarm
-    /*if (value) {
-      display();
-      index = ;
-    }*/
-  } else if (typeof data.fiveMinute != undefined) {
-    
-  } else if (typeof data.oneHour != undefined) {
-
+    if (value[3] >= 3000) { //co2
+      display(3);
+      index = 3;
+    } else if (value[6] >= 300) { //aqi
+      display(6);
+      index = 6;
+    } else if (value[8] >= 120) { //spl
+      display(8);
+      index = 8;
+    } else if (value[index] != old_value) { // Update display
+      display(index);
+    }
+  } else if (data.fiveMinute != undefined) {
+    var oneHour = JSON.parse(fs.readFileSync(path.join(__dirname, 'oneHour.json'), 'utf8'));
+    delete oneHour[data.fiveMinute.index-12];
+    var tempIndex = data.fiveMinute.index;
+    delete data.fiveMinute.index;
+    oneHour[tempIndex] = data.fiveMinute;
+    fs.writeFileSync(path.join(__dirname, 'oneHour.json'), JSON.stringify(oneHour));
+  } else if (data.oneHour != undefined) {
+    var input[data.oneHour.index] = data.oneHour;
+    delete input[data.oneHour.index].index;
+    fs.appendFileSync(path.join(__dirname, 'history.json'), JSON.stringify(input)+',');
   }
 };
 
@@ -183,6 +218,7 @@ var vase = function(app) {
     res.download(__dirname+'./oneHour.json');
   });
   app.get('/history', function(req, res) {
+    fs.readFileSync(path.join(__dirname, './oneHour.json'));
     res.download(__dirname+'./history.json');
   });
 }

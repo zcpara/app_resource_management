@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 
-var Vase = require('vase.js');
+var Vase = require('./vase.js');
 var vase = new Vase(app);
 
 // catch 404 and forward to error handler
