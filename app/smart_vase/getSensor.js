@@ -6,7 +6,7 @@ var child_process = require('child_process');
 var io = require('../../main/highLevelAPI/io.js');
 var sys = require('../../main/highLevelAPI/sys.js');
 
-//io.vase_init();
+io.vase_init();
 
 var fiveMinute = {
       'T'    : 0,
@@ -37,8 +37,8 @@ oneHour.index = parseInt((new Date()).getTime()/(60*60*1000)); //(new Date()).ge
 
 var lastMsg = null;
 setInterval(function() {
-  //var sensorMsg = io.get_vase_json();
-  var sensorMsg = JSON.stringify({T:1, H:2, FT:3, co2:4, tvoc:5, pm25:6, aqi:7, light:8, spl:9});
+  var sensorMsg = io.get_vase_json();
+  //var sensorMsg = JSON.stringify({T:1, H:2, FT:3, co2:4, tvoc:5, pm25:6, aqi:7, light:8, spl:9});
   if (lastMsg == null) {
     lastMsg = sensorMsg;
     //process.send({'content':JSON.stringify({'sensor':sensorMsg})});

@@ -177,16 +177,20 @@ var handler = function(msg) {
       display(index);
     }
   } else if (data.fiveMinute != undefined) {
-    var oneHour = JSON.parse(fs.readFileSync(path.join(__dirname, 'oneHour.json'), 'utf8'));
+    var info = fs.readFileSync(path.join(__dirname, 'oneHour.json'), 'utf8');
+    var oneHour = (info!='')?JSON.parse(info):{};
     delete oneHour[data.fiveMinute.index-12];
     var tempIndex = data.fiveMinute.index;
     delete data.fiveMinute.index;
     oneHour[tempIndex] = data.fiveMinute;
+    console.log("write to oneHour="+JSON.stringify(oneHour));
     fs.writeFileSync(path.join(__dirname, 'oneHour.json'), JSON.stringify(oneHour));
   } else if (data.oneHour != undefined) {
-    var input[data.oneHour.index] = data.oneHour;
-    delete input[data.oneHour.index].index;
-    fs.appendFileSync(path.join(__dirname, 'history.json'), JSON.stringify(input)+',');
+    var input = data.oneHour;
+    var tempIndx = data.oneHour.index;
+    //input[data.oneHour.index] = data.oneHour;
+    delete input.index;
+    fs.appendFileSync(path.join(__dirname, 'history.json'), "tempIndx:"JSON.stringify(input)+',');
   }
 };
 
@@ -215,21 +219,38 @@ var vase = function(app) {
   });
 
   app.get('/oneHour', function(req, res) {
-    res.download(__dirname+'./oneHour.json');
+    var msg = fs.readFileSync(path.join(__dirname, './oneHour.json'), 'utf8');
+    res.send(msg);
+    //res.download(__dirname+'./oneHour.json');
   });
   app.get('/history', function(req, res) {
-    fs.readFileSync(path.join(__dirname, './oneHour.json'));
-    res.download(__dirname+'./history.json');
+    var msg = fs.readFileSync(path.join(__dirname, './history.json'), 'utf8');
+    var finalMsg = '{'+msg.substring(0, msg.length-1)+'}';
+    res.send(finalMsg);
+    //res.download(__dirname+'./history.json');
   });
 }
 
+setInterval(function(){
+  // 5 minutes
+  if ((timerLastTouchEvent-(new Date()).getTime())>300000) {
+    timerLastTouchEvent = (new Date()).getTime();
+    index++;
+    display(index);
+  }
+}, 10000);
+
 io.touchPanel.on('touchEvent', function(e, x, y, id) {
+  timerLastTouchEvent = (new Date()).getTime();
+
   if (e == 'TOUCH_HOLD') {
     process.exit();
   }
 });
 
 io.touchPanel.on('gesture', function(gesture) {
+  timerLastTouchEvent = (new Date()).getTime();
+
   if (gesture == 'MUG_SWIPE_RIGHT') {
     index = (index==0)?(sensor.length-1):(index-1);
     display(index);

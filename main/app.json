@@ -3,7 +3,7 @@
     "name": "smart_vase",
     "package": "com.intel.smart_mug.musicfs",
     "version": "0.0.1",
-    "icon": "delete.jpg",
+    "icon": "vase.jpg",
     "iconJSON": "media.json",
     "start": "bin/www",
     "description": "desc"
