@@ -1,3 +1,5 @@
+var Canvas = require('canvas');
+var Image = Canvas.Image;
 var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
@@ -9,6 +11,8 @@ var sys = require('../../main/highLevelAPI/sys.js');
 var ledDisp = require('../weChat/display.js').disp;
 var forceTerminate = require('../weChat/display.js').forceTerminate;
 var ledDispEmitter = new emitter();
+
+var number = JSON.parse(fs.readFileSync(path.join(__dirname, 'number.json'), 'utf8'));
 
 var logPrefix = '[sys vase] ';
 var appReady = false;
@@ -74,17 +78,17 @@ function display (index) {
       color = "red";
     }
   } else if (index == 5) {
-    if (value[index] < 50) {
+    if (value[index] < 15) {
       color = "green";
-    } else if (value[index] >= 50 && value[index] < 100) {
+    } else if (value[index] >= 15 && value[index] < 40) {
       color = "green";
-    } else if (value[index] >= 100 && value[index] < 150) {
+    } else if (value[index] >= 40 && value[index] < 65) {
       color = "yellow";
-    } else if (value[index] >= 150 && value[index] < 200) {
+    } else if (value[index] >= 65 && value[index] < 150) {
       color = "red";
-    } else if (value[index] >= 200 && value[index] < 300) {
+    } else if (value[index] >= 150 && value[index] < 250) {
       color = "red";
-    } else if (value[index] >= 300 && value[index] < 500) {
+    } else if (value[index] >= 250 && value[index] < 500) {
       color = "red";
     } else if (value[index] >= 500) {
       color = "red";
@@ -141,10 +145,82 @@ function display (index) {
   } else if (color == "white") {
     colorV = 7;
   }
+
+  var image = numberPlusName(String(value[index]), sensor[index], colorV);
+  ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
+/*
   io.text2Img("  "+sensor[index]+":"+value[index], colorV, function(image) {
     ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
   });
+*/
 }
+
+var numberPlusName = function(valueStr, name, color) {
+  if (valueStr != '') {
+    var canvas1 = new Canvas(16, 12);
+    var ctx1 = canvas1.getContext('2d');
+    // Reserve left and right most column for vase
+    var length = 0;
+    for (var i=0; i<valueStr.length; i++) {
+      var c = valueStr[i];
+      if (c != '.') {
+        length += 3;
+      } else {
+        length += 1;
+      }
+    }
+    var position = parseInt((16-length)/2);
+    //var position = 1;
+    // combine number
+    for (var i=0; i<valueStr.length; i++) {
+      var c = valueStr[i];
+      if (c == ' ') {
+        position = position + 1 + 1;
+      } else if (number[c]) {
+        var cImg = new Image;
+        cImg.src = fs.readFileSync(path.join(__dirname, "number", number[c].img));
+        ctx1.drawImage(cImg, position, 0, 16, 12);
+        position = position + number[c].len;
+      }
+    }
+    // add name and color
+    var p1 = ctx1.getImageData(0, 0, 16, 12);
+  } else {
+    var canvas1 = new Canvas(16, 12);
+    var ctx1 = canvas1.getContext('2d');
+    var cImg = new Image;
+    cImg.src = fs.readFileSync(path.join(__dirname, "number", number['bar'].img));
+    ctx1.drawImage(cImg, 0, 0, 16, 12);
+    var p1 = ctx1.getImageData(0, 0, 16, 12);
+  }
+
+  var canvas2 = new Canvas(16, 12);
+  var ctx2 = canvas2.getContext('2d');
+  var cImg = new Image;
+  cImg.src = fs.readFileSync(path.join(__dirname, "number", number[name].img));
+  ctx2.drawImage(cImg, 0, 0, 16, 12);
+  var p2 = ctx2.getImageData(0, 0, 16, 12);
+
+  var img = [];
+  for (var x=0; x<p1.data.length; x+=8) {
+    var pixels = 0;
+    if (p1.data[x]>128 || p2.data[x]>128) {
+        pixels += color;
+    } else {
+    }
+    if (p1.data[x+4]>128 || p2.data[x+4]>128) {
+      pixels += color*16;
+    } else {
+    }
+    img.push(pixels);
+  }
+  var imageJSON = {};
+  imageJSON['img0'] = img;
+  imageJSON.numberOfImg = 1;
+  imageJSON.textEnd = [0];
+
+  return imageJSON;
+};
 
 var handler = function(msg) {
   console.log("sensor msg="+msg+"::end");
@@ -190,7 +266,7 @@ var handler = function(msg) {
     var tempIndx = data.oneHour.index;
     //input[data.oneHour.index] = data.oneHour;
     delete input.index;
-    fs.appendFileSync(path.join(__dirname, 'history.json'), "tempIndx:"JSON.stringify(input)+',');
+    fs.appendFileSync(path.join(__dirname, 'history.json'), "tempIndx:"+JSON.stringify(input)+',');
   }
 };
 
