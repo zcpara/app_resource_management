@@ -10,6 +10,7 @@
   "8": {"len": 3, "img": "8.jpg"},
   "9": {"len": 3, "img": "9.jpg"},
   ".": {"len": 1, "img": "dot.jpg"},
+  "-": {"len": 2, "img": "minus.jpg"},
   "Temperature": {"img": "t.jpg"},
   "Humidity": {"img": "h.jpg"},
   "Body Feeling Temperature": {"img": "ft.jpg"},

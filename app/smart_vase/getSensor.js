@@ -38,20 +38,46 @@ oneHour.index = parseInt((new Date()).getTime()/(60*60*1000)); //(new Date()).ge
 var lastMsg = null;
 setInterval(function() {
   //var sensorMsg = io.get_vase_json();
-  var sensorMsg = JSON.stringify({T:123.34, H:2, FT:3, co2:4, tvoc:5, pm25:6, aqi:7, light:8, spl:9});
+  var sensorMsg = JSON.stringify({T:123.34, H:8888, FT:-888, co2:4, tvoc:5, pm25:6, aqi:7, light:8, spl:9});
 
   var data = JSON.parse(sensorMsg);
 
   // data conversion
+  if (data.T>=10000) data.T = 9999.9;
+  if (data.T<=-1000) data.T = -999.9;
   data.T = parseFloat(data.T.toFixed(1));
+
+  if (data.H>=10000) data.H = 9999.9;
+  if (data.H<=-1000) data.H = -999.9;
   data.H = parseFloat(data.H.toFixed(1));
+
+  if (data.FT>=10000) data.FT = 9999.9;
+  if (data.FT<=-1000) data.FT = -999.9;
   data.FT = parseFloat(data.FT.toFixed(1));
+
+  if (data.co2>=100000) data.co2 = 99999;
+  if (data.co2<0) data.co2 = 0;
   data.co2 = parseInt(data.co2.toFixed(0));
+
   data.tvoc = data.tvoc/1000*4;
+  if (data.tvoc>=100000) data.tvoc = 99999;
+  if (data.tvoc<0) data.tvoc = 0;
   data.tvoc = parseInt(data.tvoc.toFixed(0));
+
+  if (data.pm25>=10000) data.pm25 = 9999.9;
+  if (data.pm25<=-1000) data.pm25 = -999.9;
   data.pm25 = parseFloat(data.pm25.toFixed(1));
+
+  if (data.aqi>=100000) data.aqi = 99999;
+  if (data.aqi<0) data.aqi = 0;
   data.aqi = parseInt(data.aqi.toFixed(0));
+
+  if (data.light>=100000) data.light = 99999;
+  if (data.light<0) data.light = 0;
   data.light = parseInt(data.light.toFixed(0));
+
+  if (data.spl>=100000) data.spl = 99999;
+  if (data.spl<0) data.spl = 0;
   data.spl = parseInt(data.spl.toFixed(0));
 
   sensorMsg = JSON.stringify(data);

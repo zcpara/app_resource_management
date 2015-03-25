@@ -21,6 +21,8 @@ var index = 0;
 var sensor = ["Temperature", "Humidity", "Body Feeling Temperature", "CO2", "TVOC", "PM2.5", "AQI", "Light", "Sound"];
 var value = [];
 
+var showBar = false;
+
 function display (index) {
   var color = null;
   if (index == 0) {
@@ -146,8 +148,13 @@ function display (index) {
     colorV = 7;
   }
 
-  var image = numberPlusName(String(value[index]), sensor[index], colorV);
-  ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
+  if (showBar) {
+    var image = numberPlusName('', sensor[index], colorV);
+    ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
+  } else {
+    var image = numberPlusName(String(value[index]), sensor[index], colorV);
+    ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
+  }
 /*
   io.text2Img("  "+sensor[index]+":"+value[index], colorV, function(image) {
     ledDisp(JSON.stringify(image), 150, false, false, ledDispEmitter);
@@ -204,14 +211,19 @@ var numberPlusName = function(valueStr, name, color) {
   var img = [];
   for (var x=0; x<p1.data.length; x+=8) {
     var pixels = 0;
-    if (p1.data[x]>128 || p2.data[x]>128) {
+    if (p1.data[x]>128) {
         pixels += color;
-    } else {
     }
-    if (p1.data[x+4]>128 || p2.data[x+4]>128) {
+    if (p2.data[x]>128) {
+        pixels += 7; // white
+    }
+    if (p1.data[x+4]>128) {
       pixels += color*16;
-    } else {
     }
+    if (p2.data[x+4]>128) {
+       pixels += 7*16; // white
+    }
+    
     img.push(pixels);
   }
   var imageJSON = {};
@@ -321,6 +333,9 @@ io.touchPanel.on('touchEvent', function(e, x, y, id) {
 
   if (e == 'TOUCH_HOLD') {
     process.exit();
+  } else if (e == 'TOUCH_CLICK') {
+    showBar = !showBar;
+    display(index);
   }
 });
 
