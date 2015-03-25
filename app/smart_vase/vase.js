@@ -321,9 +321,9 @@ var vase = function(app) {
 
 setInterval(function(){
   // 5 minutes
-  if ((timerLastTouchEvent-(new Date()).getTime())>300000) {
+  if (((new Date()).getTime()-timerLastTouchEvent)>300000) {
     timerLastTouchEvent = (new Date()).getTime();
-    index++;
+    index = (index+1)==sensor.length?0:(index+1);
     display(index);
   }
 }, 10000);
