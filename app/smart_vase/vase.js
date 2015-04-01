@@ -317,6 +317,25 @@ var vase = function(app) {
     res.send(finalMsg);
     //res.download(__dirname+'./history.json');
   });
+
+  app.use(busboy());
+  app.post('/uploadConfigFile', function(req, res) {
+    var fstream;
+
+    req.pipe(req.busboy);
+    req.busboy.on('field', function(key, value, keyTruncated, valueTruncated) {
+    });
+    req.busboy.on('file', function (fieldname, file, filename) {
+        var fileName = path.join('/home/root/sensor.config');
+        fstream = fs.createWriteStream(fileName);
+        file.pipe(fstream);
+        fstream.on('close', function () {
+          res.send('upload '+filename+' successfully!\n');
+        });
+      }
+    });
+  });
+
 }
 
 setInterval(function(){
