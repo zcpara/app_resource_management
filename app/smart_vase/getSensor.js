@@ -6,7 +6,7 @@ var child_process = require('child_process');
 var io = require('../../main/highLevelAPI/io.js');
 var sys = require('../../main/highLevelAPI/sys.js');
 
-//io.vase_init();
+io.vase_init();
 
 var fiveMinute = {
       'T'    : 0,
@@ -37,8 +37,8 @@ oneHour.index = parseInt((new Date()).getTime()/(60*60*1000)); //(new Date()).ge
 
 var lastMsg = null;
 setInterval(function() {
-  //var sensorMsg = io.get_vase_json();
-  var sensorMsg = JSON.stringify({T:123.34, H:8888, FT:-888, co2:4, tvoc:5, pm25:6, aqi:7, light:8, spl:9});
+  var sensorMsg = io.get_vase_json();
+  //var sensorMsg = JSON.stringify({T:123.34, H:8888, FT:-888, co2:4, tvoc:5, pm25:6, aqi:7, light:8, spl:9});
 
   var data = JSON.parse(sensorMsg);
 
@@ -60,9 +60,9 @@ setInterval(function() {
   data.co2 = parseInt(data.co2.toFixed(0));
 
   data.tvoc = data.tvoc/1000*4;
-  if (data.tvoc>=100000) data.tvoc = 99999;
+  if (data.tvoc>=1000) data.tvoc = 999;
   if (data.tvoc<0) data.tvoc = 0;
-  data.tvoc = parseInt(data.tvoc.toFixed(0));
+  data.tvoc = parseFloat(data.tvoc.toFixed(2));
 
   if (data.pm25>=10000) data.pm25 = 9999.9;
   if (data.pm25<=-1000) data.pm25 = -999.9;
@@ -77,7 +77,10 @@ setInterval(function() {
   data.light = parseInt(data.light.toFixed(0));
 
   if (data.spl>=100000) data.spl = 99999;
-  if (data.spl<0) data.spl = 0;
+  if (data.spl<=0) 
+  {
+       data.spl = 40 + 10.0*Math.random();
+  }
   data.spl = parseInt(data.spl.toFixed(0));
 
   sensorMsg = JSON.stringify(data);
@@ -132,6 +135,7 @@ setInterval(function() {
   }
 
   var hourIndex = parseInt((new Date()).getTime()/(60*60*1000));
+//  var hourIndex = parseInt((new Date()).getTime()/(40*1000));
   if (hourIndex != oneHour.index) {
     if (oneHour.count != 0) {
       process.send(JSON.stringify({'oneHour':{

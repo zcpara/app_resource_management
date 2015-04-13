@@ -5,6 +5,7 @@ var path = require('path');
 var child_process = require('child_process');
 var utf8 = require('utf8');
 var emitter = require('events').EventEmitter;
+var busboy = require('connect-busboy');
 
 var io = require('../../main/highLevelAPI/io.js');
 var sys = require('../../main/highLevelAPI/sys.js');
@@ -99,7 +100,7 @@ function display (index) {
     if (value[index] < 50) {
       color = "green";
     } else if (value[index] >= 50 && value[index] < 100) {
-      color = "yellow";
+      color = "green";
     } else if (value[index] >= 100 && value[index] < 150) {
       color = "yellow";
     } else if (value[index] >= 150 && value[index] < 200) {
@@ -241,9 +242,9 @@ var handler = function(msg) {
     var old_value = value[index];
 
     var temp = JSON.parse(data.currentValue);
-    value[0] = temp.T;
+    value[0] = temp.T-5;
     value[1] = temp.H;
-    value[2] = temp.FT;
+    value[2] = temp.FT-5;
     value[3] = temp.co2;
     value[4] = temp.tvoc;
     value[5] = temp.pm25;
@@ -278,16 +279,18 @@ var handler = function(msg) {
     var tempIndx = data.oneHour.index;
     //input[data.oneHour.index] = data.oneHour;
     delete input.index;
-    fs.appendFileSync(path.join(__dirname, 'history.json'), "tempIndx:"+JSON.stringify(input)+',');
+    //fs.appendFileSync(path.join(__dirname, 'history.json'), tempIndx+":"+JSON.stringify(input)+',');
+    fs.appendFileSync(path.join(__dirname, 'history.json'),'"'+tempIndx+'":'+JSON.stringify(input)+',');
   }
 };
 
 var timerLastTouchEvent = null;
 var index = 0;
+var getContentProcess;
 var vase = function(app) {
   timerLastTouchEvent = (new Date()).getTime();
 
-  var getContentProcess = child_process.fork(path.join(__dirname, 'getSensor.js'));
+  getContentProcess = child_process.fork(path.join(__dirname, 'getSensor.js'));
   getContentProcess.on('message', handler);
   
   display(index);
@@ -320,6 +323,7 @@ var vase = function(app) {
 
   app.use(busboy());
   app.post('/uploadConfigFile', function(req, res) {
+    console.log('upload config file');
     var fstream;
 
     req.pipe(req.busboy);
@@ -332,10 +336,8 @@ var vase = function(app) {
         fstream.on('close', function () {
           res.send('upload '+filename+' successfully!\n');
         });
-      }
     });
   });
-
 }
 
 setInterval(function(){
@@ -351,6 +353,7 @@ io.touchPanel.on('touchEvent', function(e, x, y, id) {
   timerLastTouchEvent = (new Date()).getTime();
 
   if (e == 'TOUCH_HOLD') {
+    getContentProcess.kill('SIGKILL');
     process.exit();
   } else if (e == 'TOUCH_CLICK') {
     showBar = !showBar;
